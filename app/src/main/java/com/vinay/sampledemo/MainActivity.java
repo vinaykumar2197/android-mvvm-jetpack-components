@@ -1,6 +1,12 @@
 package com.vinay.sampledemo;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.view.View;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.lifecycle.Observer;
@@ -8,6 +14,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.vinay.sampledemo.broadcast.DynamicBroadcast;
+import com.vinay.sampledemo.broadcast.interfaces.BroadcastInterface;
 import com.vinay.sampledemo.data.Article;
 import com.vinay.sampledemo.data.ArticleResponse;
 import com.vinay.sampledemo.databinding.ActivityMainBinding;
@@ -17,7 +25,7 @@ import com.vinay.sampledemo.viewmodel.NewsViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BroadcastInterface {
 
     private static final String TAG = "MainActivity";
     private ActivityMainBinding binding;
@@ -25,6 +33,14 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.LayoutManager layoutManager;
     private NewsArticleAdapter newsArticleAdapter;
     private ArrayList<Article> articleArrayList;
+    private DynamicBroadcast dynamicBroadcast = new DynamicBroadcast(this);
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        registerBroadcast();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         setUpRecyclerview();
         getMoviesArticles();
+
     }
 
     private void setUpRecyclerview(){
@@ -66,5 +83,24 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void registerBroadcast(){
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+
+        registerReceiver(dynamicBroadcast,filter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        unregisterReceiver(dynamicBroadcast);
+    }
+
+
+    @Override
+    public void onDataRecieved(String data) {
+        Toast.makeText(this, data, Toast.LENGTH_SHORT).show();
     }
 }
